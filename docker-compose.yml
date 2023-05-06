@@ -1,0 +1,49 @@
+version: '3.5'
+services:
+
+  # PHP FPM Service
+  php-laravel-ecommerce:
+    build:
+      context: ./docker/php/image
+      dockerfile: laravel6.dockerfile
+    image: php-laravel-ecommerce:app
+    container_name: php-laravel-ecommerce
+    restart: unless-stopped
+    working_dir: /var/www/laravel-ecommerce
+    volumes:
+      - ./:/var/www/laravel-ecommerce
+    networks:
+      - laravel-ecommerce
+
+  # Nginx Service
+  nginx-laravel-ecommerce:
+    image: nginx:latest
+    container_name: nginx-laravel-ecommerce
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/laravel-ecommerce
+      - ./docker/nginx/config/etc-nginx-conf.d:/etc/nginx/conf.d
+    ports:
+      - "0.0.0.0:80:80"
+    networks:
+      - laravel-ecommerce
+
+  # MySQL Service
+  mysql-laravel-ecommerce:
+    image: mysql:5.7
+    container_name: mysql-laravel-ecommerce
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./docker/mysql/mounting-point-db:/var/lib/mysql/
+      - ./docker/mysql/dump-databases:/db
+    ports:
+      - "0.0.0.0:3306:3306"
+    networks:
+      - laravel-ecommerce
+
+# Networks
+networks:
+  laravel-ecommerce:
+    driver: bridge
